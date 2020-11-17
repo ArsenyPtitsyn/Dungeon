@@ -15,6 +15,8 @@ public abstract class Unit {
     int hpMax;
     int cellX;
     int cellY;
+    int experience;
+    int moveCounter;
     Vector2 tmp;
 
     public int getCellX() {
@@ -31,6 +33,8 @@ public abstract class Unit {
         this.hp = hpMax;
         this.cellX = cellX;
         this.cellY = cellY;
+        this.experience = 0;
+        this.moveCounter = 5;
         this.tmp = new Vector2(0, 0);
     }
 

@@ -33,6 +33,9 @@ public class Hero extends Unit {
             if (Math.abs(gc.getCursorX() - cellX) + Math.abs(gc.getCursorY() - cellY) == 1) {
                 targetX = gc.getCursorX();
                 targetY = gc.getCursorY();
+                moveCounter--;
+                if (moveCounter == 0)
+                    moveCounter =5;
             }
         }
 
@@ -41,9 +44,13 @@ public class Hero extends Unit {
             targetX = cellX;
             targetY = cellY;
             m.takeDamage(1);
+            if (m.hp == 0) {
+                experience++;
+                System.out.println("experience of hero: " + experience);
+            }
         }
 
-        if (!gc.getGameMap().isCellPassable(targetX, targetY)) {
+        if (!gc.getGameMap().isCellPossible(targetX, targetY)) {
             targetX = cellX;
             targetY = cellY;
         }

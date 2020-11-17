@@ -29,7 +29,7 @@ public class GameMap {
         this.grassTexture = atlas.findRegion("grass");
     }
 
-    public boolean isCellPassable(int cx, int cy) {
+    public boolean isCellPossible(int cx, int cy) {
         if (cx < 0 || cx > getCellsX() - 1 || cy < 0 || cy > getCellsY() - 1) {
             return false;
         }
