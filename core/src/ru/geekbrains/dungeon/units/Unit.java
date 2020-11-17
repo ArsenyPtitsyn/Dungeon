@@ -17,6 +17,8 @@ public abstract class Unit {
     int cellY;
     int experience;
     int moveCounter;
+    int maxMoveCounter;
+
     Vector2 tmp;
 
     public int getCellX() {
@@ -34,7 +36,8 @@ public abstract class Unit {
         this.cellX = cellX;
         this.cellY = cellY;
         this.experience = 0;
-        this.moveCounter = 5;
+        this.maxMoveCounter = 5;
+        this.moveCounter = maxMoveCounter;
         this.tmp = new Vector2(0, 0);
     }
 

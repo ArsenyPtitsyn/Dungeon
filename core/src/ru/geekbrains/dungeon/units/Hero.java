@@ -30,12 +30,14 @@ public class Hero extends Unit {
 
     public void checkMovement(float dt) {
         if (Gdx.input.justTouched() && isStayStill()) {
-            if (Math.abs(gc.getCursorX() - cellX) + Math.abs(gc.getCursorY() - cellY) == 1) {
+            if (Math.abs(gc.getCursorX() - cellX) + Math.abs(gc.getCursorY() - cellY) == 1 &&
+                    gc.getGameMap().isCellPossible(gc.getCursorX(), gc.getCursorY())) {
                 targetX = gc.getCursorX();
                 targetY = gc.getCursorY();
                 moveCounter--;
-                if (moveCounter == 0)
-                    moveCounter =5;
+                if (moveCounter < 0)
+                    moveCounter = maxMoveCounter;
+                System.out.println("Count of moves: " + moveCounter);
             }
         }
 
@@ -44,9 +46,10 @@ public class Hero extends Unit {
             targetX = cellX;
             targetY = cellY;
             m.takeDamage(1);
+            if (Math.random() * 4 < 1)
+                this.takeDamage(1);
             if (m.hp == 0) {
                 experience++;
-                System.out.println("experience of hero: " + experience);
             }
         }
 
@@ -80,6 +83,10 @@ public class Hero extends Unit {
         batch.draw(textureHp, px + 2, py + 52, 56, 8);
         batch.setColor(0.0f, 1.0f, 0.0f, 1.0f);
         batch.draw(textureHp, px + 2, py + 52, (float) hp / hpMax * 56, 8);
+        batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        batch.draw(textureHp, px, py - 8, (float) moveCounter / maxMoveCounter * 60, 8);
+        batch.setColor(1.0f, 1.0f, 0.0f, 1.0f);
+        batch.draw(textureHp, px, py + 60, (float) experience / 10 * 60, 8); // полоска опыта...для 1 уровня героя
         batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 }
