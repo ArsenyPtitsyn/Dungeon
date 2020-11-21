@@ -3,6 +3,7 @@ package ru.geekbrains.dungeon.units;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.math.MathUtils;
 import ru.geekbrains.dungeon.GameController;
 
 public class Monster extends Unit {
@@ -44,20 +45,46 @@ public class Monster extends Unit {
     }
 
     public void tryToMove() {
-        int bestX = -1, bestY = -1;
+        final float aggrDst = 5.0f;
+        int nextX = -1, nextY = -1;
         float bestDst = 10000;
-        for (int i = cellX - 1; i <= cellX + 1; i++) {
-            for (int j = cellY - 1; j <= cellY + 1; j++) {
-                if (Math.abs(cellX - i) + Math.abs(cellY - j) == 1 && gc.getGameMap().isCellPassable(i, j) && gc.getUnitController().isCellFree(i, j)) {
-                    float dst = (float) Math.sqrt((i - target.getCellX()) * (i - target.getCellX()) + (j - target.getCellY()) * (j - target.getCellY()));
-                    if (dst < bestDst) {
-                        bestDst = dst;
-                        bestX = i;
-                        bestY = j;
+        float dst = (float) Math.sqrt((cellX - target.getCellX()) * (cellX - target.getCellX())
+                + (cellY - target.getCellY()) * (cellY - target.getCellY()));
+        if (dst <= aggrDst) {
+            for (int i = cellX - 1; i <= cellX + 1; i++) {
+                for (int j = cellY - 1; j <= cellY + 1; j++) {
+                    if (Math.abs(cellX - i) + Math.abs(cellY - j) == 1 && gc.getGameMap().isCellPassable(i, j)
+                            && gc.getUnitController().isCellFree(i, j)) {
+                        float newDst = (float) Math.sqrt((i - target.getCellX()) * (i - target.getCellX())
+                                + (j - target.getCellY()) * (j - target.getCellY()));
+                        if (newDst < bestDst) {
+                            bestDst = newDst;
+                            nextX = i;
+                            nextY = j;
+                        }
                     }
                 }
             }
+        } else {
+            int random = MathUtils.random(3);
+            if (random == 0 && gc.getGameMap().isCellPassable(cellX + 1, cellY)
+                    && gc.getUnitController().isCellFree(cellX + 1, cellY)) {
+                nextX = cellX + 1;
+                nextY = cellY;
+            } else if (random == 1 && gc.getGameMap().isCellPassable(cellX + 1, cellY)
+                    && gc.getUnitController().isCellFree(cellX + 1, cellY)) {
+                nextX = cellX;
+                nextY = cellY + 1;
+            } else if (random == 2 && gc.getGameMap().isCellPassable(cellX + 1, cellY)
+                    && gc.getUnitController().isCellFree(cellX + 1, cellY)) {
+                nextX = cellX -1;
+                nextY = cellY;
+            } else if (random == 3 && gc.getGameMap().isCellPassable(cellX + 1, cellY)
+                    && gc.getUnitController().isCellFree(cellX + 1, cellY)) {
+                nextX = cellX;
+                nextY = cellY - 1;
+            }
         }
-        goTo(bestX, bestY);
+        goTo(nextX, nextY);
     }
 }
