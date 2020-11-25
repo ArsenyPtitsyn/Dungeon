@@ -14,6 +14,7 @@ public abstract class Unit implements Poolable {
     int defence;
     int hp;
     int hpMax;
+    int coins;
     int cellX;
     int cellY;
     int attackRange;
@@ -43,6 +44,7 @@ public abstract class Unit implements Poolable {
         this.gc = gc;
         this.hpMax = hpMax;
         this.hp = hpMax;
+        this.coins = MathUtils.random(1, 3);
         this.cellX = cellX;
         this.cellY = cellY;
         this.targetX = cellX;
@@ -57,6 +59,8 @@ public abstract class Unit implements Poolable {
 
     public void startTurn() {
         turns = maxTurns;
+        if (this.hp != hpMax)
+            this.hp++;
     }
 
     @Override
@@ -99,6 +103,10 @@ public abstract class Unit implements Poolable {
         target.takeDamage(BattleCalc.attack(this, target));
         this.takeDamage(BattleCalc.checkCounterAttack(this, target));
         turns--;
+        if (target.hp <= 0)
+            this.coins += target.coins;
+        if (this.hp <= 0)
+            target.coins += this.coins;
     }
 
     public void update(float dt) {
@@ -122,17 +130,29 @@ public abstract class Unit implements Poolable {
             py = cellY * GameMap.CELL_SIZE + (targetY - cellY) * (movementTime / movementMaxTime) * GameMap.CELL_SIZE;
         }
         batch.draw(texture, px, py);
-        batch.setColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-
         float barX = px, barY = py + MathUtils.sin(innerTimer * 5.0f) * 2;
-        batch.draw(textureHp, barX + 1, barY + 51, 58, 10);
-        batch.setColor(0.7f, 0.0f, 0.0f, 1.0f);
-        batch.draw(textureHp, barX + 2, barY + 52, 56, 8);
-        batch.setColor(0.0f, 1.0f, 0.0f, 1.0f);
-        batch.draw(textureHp, barX + 2, barY + 52, (float) hp / hpMax * 56, 8);
-        batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        if (this.hp == hpMax) {
+            batch.setColor(0.0f, 0.0f, 0.0f, 0.2f);
+            batch.draw(textureHp, barX + 1, barY + 51, 58, 10);
+            batch.setColor(0.7f, 0.0f, 0.0f, 0.2f);
+            batch.draw(textureHp, barX + 2, barY + 52, 56, 8);
+            batch.setColor(0.0f, 1.0f, 0.0f, 0.2f);
+            batch.draw(textureHp, barX + 2, barY + 52, (float) hp / hpMax * 56, 8);
+            batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        } else {
+            batch.setColor(0.0f, 0.0f, 0.0f, 1.0f);
+            batch.draw(textureHp, barX + 1, barY + 51, 58, 10);
+            batch.setColor(0.7f, 0.0f, 0.0f, 1.0f);
+            batch.draw(textureHp, barX + 2, barY + 52, 56, 8);
+            batch.setColor(0.0f, 1.0f, 0.0f, 1.0f);
+            batch.draw(textureHp, barX + 2, barY + 52, (float) hp / hpMax * 56, 8);
+            batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        }
         font18.draw(batch, "" + hp, barX, barY + 64, 60, 1, false);
+        font18.setColor(1.0f, 0.7f, 0.0f, 0.7f);
+        font18.draw(batch, "" + coins, barX + 64, barY + 58);
+        font18.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
     public int getTurns() {

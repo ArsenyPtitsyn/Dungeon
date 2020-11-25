@@ -14,6 +14,7 @@ public class Hero extends Unit {
         this.hp = this.hpMax;
         this.texture = Assets.getInstance().getAtlas().findRegion("knight");
         this.textureHp = Assets.getInstance().getAtlas().findRegion("hp");
+        this.coins = 5;
     }
 
     public void update(float dt) {
