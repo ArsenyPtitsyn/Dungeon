@@ -1,6 +1,12 @@
-/tools/
-/gradle/
 /core/assets/
+/core/build.gradle
+/gradle/
+/tools/
+build.gradle
+gradle.properties
+gradlew
+gradlew.bat
+settings.gradle
 
 ## Java
 
@@ -95,11 +101,7 @@ nbactions.xml
 nb-configuration.xml
 
 ## Gradle
-build.gradle
-gradle.properties
-gradlew
-gradlew.bat
-settings.gradle
+
 /local.properties
 .gradle/
 gradle-app.setting
