@@ -2,11 +2,11 @@
 /core/build.gradle
 /gradle/
 /tools/
-build.gradle
+
 gradle.properties
 gradlew
 gradlew.bat
-settings.gradle
+*.gradle
 
 ## Java
 
