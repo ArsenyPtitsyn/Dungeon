@@ -3,9 +3,8 @@
 /desktop/build.gradle
 /gradle/
 /tools/
-gradle.properties
+gradle*.*
 gradlew
-gradlew.bat
 settings.gradle
 
 ## Java
