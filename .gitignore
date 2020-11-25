@@ -1,12 +1,12 @@
 /core/assets/
 /core/build.gradle
+/desktop/build.gradle
 /gradle/
 /tools/
-
 gradle.properties
 gradlew
 gradlew.bat
-*.gradle
+settings.gradle
 
 ## Java
 
