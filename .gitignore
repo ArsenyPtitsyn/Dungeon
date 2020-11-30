@@ -1,13 +1,3 @@
-/core/assets/
-/core/build.gradle
-/gradle/
-/tools/
-build.gradle
-gradle.properties
-gradlew
-gradlew.bat
-settings.gradle
-
 ## Java
 
 *.class
