@@ -5,8 +5,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import ru.geekbrains.dungeon.helpers.Poolable;
 
 @Data
