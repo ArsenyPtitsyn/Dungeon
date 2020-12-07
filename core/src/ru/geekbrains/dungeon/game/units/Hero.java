@@ -30,6 +30,10 @@ public class Hero extends Unit {
         this.createGui();
     }
 
+    public void addSatiety(int amount) {
+        satiety += amount;
+    }
+
     public void update(float dt) {
         super.update(dt);
         if (Gdx.input.justTouched() && canIMakeAction()) {

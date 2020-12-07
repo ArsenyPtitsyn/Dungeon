@@ -149,7 +149,7 @@ public class GameController {
         Group menuGroup = new Group();
         menuGroup.addActor(btnEndTurn);
         menuGroup.addActor(btnGoToMenu);
-        menuGroup.setPosition(20, ScreenManager.WORLD_HEIGHT - 60);
+        menuGroup.setPosition(20, ScreenManager.WORLD_HEIGHT - 100);
 
         stage.addActor(menuGroup);
         skin.dispose();

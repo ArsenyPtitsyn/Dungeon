@@ -35,6 +35,12 @@ public class WorldRenderer {
         Color cursorColor = Color.WHITE;
         if (gc.getUnitController().getMonsterController().getMonsterInCell(gc.getCursorX(), gc.getCursorY()) != null) {
             cursorColor = Color.RED;
+            font18.setColor(Color.ORANGE);
+            stringHelper.setLength(0);
+            stringHelper.append("Gold: ").append(gc.getUnitController()
+                    .getMonsterController().getMonsterInCell(gc.getCursorX(), gc.getCursorY()).getGold());
+            font18.draw(batch, stringHelper, gc.getCursorX() * GameMap.CELL_SIZE, gc.getCursorY() * GameMap.CELL_SIZE);
+            font18.setColor(1, 1, 1, 1);
         }
 
         batch.setColor(cursorColor.r, cursorColor.g, cursorColor.b, 0.5f + 0.1f * (float) Math.sin(gc.getWorldTimer() * 8.0f));

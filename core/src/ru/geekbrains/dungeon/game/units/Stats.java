@@ -11,7 +11,12 @@ public class Stats {
     int movePoints, minMovePoints, maxMovePoints;
     int visionRadius;
 
-    public Stats(int level, int maxHp, int minAttackPoints, int maxAttackPoint, int minMovePoints, int maxMovePoint) {
+    public Stats(int level,
+                 int maxHp,
+                 int minAttackPoints,
+                 int maxAttackPoint,
+                 int minMovePoints,
+                 int maxMovePoint) {
         this.level = level;
         this.maxHp = maxHp;
         this.hp = this.maxHp;
