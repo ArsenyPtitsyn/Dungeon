@@ -10,7 +10,7 @@ import ru.geekbrains.dungeon.helpers.Assets;
 @Getter
 public class GameMap {
     public enum CellType {
-        GRASS (1), WATER, TREE, SWAMP (2);
+        GRASS (1), WATER, TREE, TREE_WITH_BERRIES, SWAMP (2);
 
         int costOfPassage;
 
@@ -42,7 +42,7 @@ public class GameMap {
 
         public void changeType(CellType to) {
             type = to;
-            if (type == CellType.TREE) {
+            if (type == CellType.TREE || type == CellType.TREE_WITH_BERRIES) {
                 index = MathUtils.random(4);
             }
         }
@@ -67,7 +67,7 @@ public class GameMap {
     private TextureRegion goldTexture;
     private TextureRegion berriesTexture;
     private TextureRegion[] treesTextures;
-    private final int minCountOfBerries = 0;
+    private final int minCountOfBerries = 1;
     private final int maxCountOfBerries = 10;
 
     public GameMap() {
@@ -82,7 +82,10 @@ public class GameMap {
             int randomX = MathUtils.random(0, CELLS_X - 1);
             int randomY = MathUtils.random(0, CELLS_Y - 1);
             this.data[randomX][randomY].changeType(CellType.TREE);
-            data[randomX][randomY].countOfBerries = MathUtils.random(minCountOfBerries, maxCountOfBerries);
+            if (MathUtils.random() < 0.4) {
+                data[randomX][randomY].countOfBerries = MathUtils.random(minCountOfBerries, maxCountOfBerries);
+                this.data[randomX][randomY].changeType(CellType.TREE_WITH_BERRIES);
+            }
         }
         int swampCellsCount = (int) ((CELLS_X * CELLS_Y * SWAMP_PERCENTAGE) / 100.0f);
         for (int i = 0; i < swampCellsCount; i++) {
@@ -99,7 +102,11 @@ public class GameMap {
         if (cx < 0 || cx > getCellsX() - 1 || cy < 0 || cy > getCellsY() - 1) {
             return false;
         }
-        return data[cx][cy].type != CellType.TREE;
+        return data[cx][cy].type != CellType.TREE && data[cx][cy].type != CellType.TREE_WITH_BERRIES;
+    }
+
+    public boolean isCellWithBerries(int cx, int cy) {
+        return data[cx][cy].type == CellType.TREE_WITH_BERRIES && data[cx][cy].countOfBerries != 0;
     }
 
     public void renderGround(SpriteBatch batch) {
@@ -119,6 +126,9 @@ public class GameMap {
                     batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
                 }
                 if (data[i][j].type == CellType.TREE) {
+                    batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);
+                }
+                if (data[i][j].type == CellType.TREE_WITH_BERRIES) {
                     switch (data[i][j].countOfBerries) {
                         case 10:
                             batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);

@@ -103,8 +103,23 @@ public abstract class Unit implements Poolable {
         stats.restoreHp(amount);
     }
 
-    public void addSatiety() {
-        this.satiety++;
+    public void addSatiety(int amount) {
+        if (satiety < maxSatiety + amount)
+            satiety += amount;
+        else
+            satiety = maxSatiety;
+    }
+
+    public void reduceSatiety(int amount) {
+        if (satiety + amount > 0)
+            satiety -= amount;
+        else if (satiety > 0 && amount > satiety){
+            satiety = 0;
+            stats.hp -= amount-satiety;
+        } else {
+            satiety = 0;
+            stats.hp -= amount;
+        }
     }
 
     public void startTurn() {
@@ -152,6 +167,7 @@ public abstract class Unit implements Poolable {
         if (!gc.isCellEmpty(argCellX, argCellY)) {
             return;
         }
+
         if (Math.abs(argCellX - cellX) + Math.abs(argCellY - cellY) == 1 &&
                 stats.movePoints >= gc.getGameMap().getCostOfPassage(argCellX, argCellY)) {
             targetX = argCellX;
@@ -182,8 +198,19 @@ public abstract class Unit implements Poolable {
 
     public void gatherBerry(int berryCellX, int berryCellY) {
         currentDirection = Direction.getMoveDirection(cellX, cellY, berryCellX, berryCellY);
-        gc.getGameMap().removeBerry(berryCellX, berryCellY);
-        stats.movePoints--;
+        if (canIGatherBerry(berryCellX, berryCellY)) {
+            gc.getGameMap().removeBerry(berryCellX, berryCellY);
+            stats.movePoints -= gc.getGameMap().getCostOfPassage(cellX, cellY);
+            if (satiety < maxSatiety)
+                addSatiety(1);
+        }
+    }
+
+    public boolean canIGatherBerry(int berryCellX, int berryCellY) {
+        return stats.movePoints >= gc.getGameMap().getCostOfPassage(cellX, cellY) && satiety < maxSatiety &&
+                ((cellX - berryCellX == 0 && Math.abs(cellY - berryCellY) == 1) ||
+                (cellY - berryCellY == 0 && Math.abs(cellX - berryCellX) == 1)) &&
+                gc.getGameMap().isCellWithBerries(berryCellX, berryCellY);
     }
 
     public void update(float dt) {

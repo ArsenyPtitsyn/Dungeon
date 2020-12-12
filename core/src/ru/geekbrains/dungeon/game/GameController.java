@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.PropertiesUtils;
 import lombok.Data;
+import ru.geekbrains.dungeon.game.units.Hero;
 import ru.geekbrains.dungeon.helpers.Assets;
 import ru.geekbrains.dungeon.screens.ScreenManager;
 
@@ -70,6 +71,7 @@ public class GameController {
 
     public void roundUp() {
         round++;
+        unitController.getHero().reduceSatiety(1);
         unitController.startRound();
         if (round % 3 == 0) {
             unitController.createMonsterInRandomCell();
