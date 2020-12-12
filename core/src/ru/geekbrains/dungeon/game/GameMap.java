@@ -3,12 +3,22 @@ package ru.geekbrains.dungeon.game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
+import lombok.Getter;
 import ru.geekbrains.dungeon.game.units.Unit;
 import ru.geekbrains.dungeon.helpers.Assets;
 
+@Getter
 public class GameMap {
     public enum CellType {
-        GRASS, WATER, TREE
+        GRASS (1), WATER, TREE, TREE_WITH_BERRIES, SWAMP (2);
+
+        int costOfPassage;
+
+        CellType() {}
+
+        CellType(int costOfPassage) {
+            this.costOfPassage = costOfPassage;
+        }
     }
 
     public enum DropType {
@@ -20,6 +30,7 @@ public class GameMap {
 
         DropType dropType;
         int dropPower;
+        int countOfBerries;
 
         int index;
 
@@ -31,7 +42,7 @@ public class GameMap {
 
         public void changeType(CellType to) {
             type = to;
-            if (type == CellType.TREE) {
+            if (type == CellType.TREE || type == CellType.TREE_WITH_BERRIES) {
                 index = MathUtils.random(4);
             }
         }
@@ -41,6 +52,7 @@ public class GameMap {
     public static final int CELLS_Y = 12;
     public static final int CELL_SIZE = 60;
     public static final int FOREST_PERCENTAGE = 5;
+    public static final int SWAMP_PERCENTAGE = 4;
 
     public int getCellsX() {
         return CELLS_X;
@@ -53,7 +65,10 @@ public class GameMap {
     private Cell[][] data;
     private TextureRegion grassTexture;
     private TextureRegion goldTexture;
+    private TextureRegion berriesTexture;
     private TextureRegion[] treesTextures;
+    private final int minCountOfBerries = 1;
+    private final int maxCountOfBerries = 10;
 
     public GameMap() {
         this.data = new Cell[CELLS_X][CELLS_Y];
@@ -64,23 +79,34 @@ public class GameMap {
         }
         int treesCount = (int) ((CELLS_X * CELLS_Y * FOREST_PERCENTAGE) / 100.0f);
         for (int i = 0; i < treesCount; i++) {
-            this.data[MathUtils.random(0, CELLS_X - 1)][MathUtils.random(0, CELLS_Y - 1)].changeType(CellType.TREE);
-
+            int randomX = MathUtils.random(0, CELLS_X - 1);
+            int randomY = MathUtils.random(0, CELLS_Y - 1);
+            this.data[randomX][randomY].changeType(CellType.TREE);
+            if (MathUtils.random() < 0.4) {
+                data[randomX][randomY].countOfBerries = MathUtils.random(minCountOfBerries, maxCountOfBerries);
+                this.data[randomX][randomY].changeType(CellType.TREE_WITH_BERRIES);
+            }
+        }
+        int swampCellsCount = (int) ((CELLS_X * CELLS_Y * SWAMP_PERCENTAGE) / 100.0f);
+        for (int i = 0; i < swampCellsCount; i++) {
+            this.data[MathUtils.random(0, CELLS_X - 1)][MathUtils.random(0, CELLS_Y - 1)].changeType(CellType.SWAMP);
         }
 
         this.grassTexture = Assets.getInstance().getAtlas().findRegion("grass");
         this.goldTexture = Assets.getInstance().getAtlas().findRegion("chest").split(60, 60)[0][0];
         this.treesTextures = Assets.getInstance().getAtlas().findRegion("trees").split(60, 90)[0];
+        this.berriesTexture = Assets.getInstance().getAtlas().findRegion("projectile");
     }
 
     public boolean isCellPassable(int cx, int cy) {
         if (cx < 0 || cx > getCellsX() - 1 || cy < 0 || cy > getCellsY() - 1) {
             return false;
         }
-        if (data[cx][cy].type != CellType.GRASS) {
-            return false;
-        }
-        return true;
+        return data[cx][cy].type != CellType.TREE && data[cx][cy].type != CellType.TREE_WITH_BERRIES;
+    }
+
+    public boolean isCellWithBerries(int cx, int cy) {
+        return data[cx][cy].type == CellType.TREE_WITH_BERRIES && data[cx][cy].countOfBerries != 0;
     }
 
     public void renderGround(SpriteBatch batch) {
@@ -94,8 +120,105 @@ public class GameMap {
     public void renderObjects(SpriteBatch batch) {
         for (int i = 0; i < CELLS_X; i++) {
             for (int j = CELLS_Y - 1; j >= 0; j--) {
+                if (data[i][j].type == CellType.SWAMP) {
+                    batch.setColor(0.0f, 0.5f, 0.0f, 1.0f);
+                    batch.draw(grassTexture, i * CELL_SIZE, j * CELL_SIZE);
+                    batch.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+                }
                 if (data[i][j].type == CellType.TREE) {
                     batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);
+                }
+                if (data[i][j].type == CellType.TREE_WITH_BERRIES) {
+                    switch (data[i][j].countOfBerries) {
+                        case 10:
+                            batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.4f)* CELL_SIZE, (j + 0.8f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.3f)* CELL_SIZE, (j + 0.6f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.5f)* CELL_SIZE, (j + 0.6f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.2f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.4f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.6f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.1f)* CELL_SIZE, (j + 0.2f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.3f)* CELL_SIZE, (j + 0.2f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.5f)* CELL_SIZE, (j + 0.2f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.7f)* CELL_SIZE, (j + 0.2f) * CELL_SIZE);
+                            break;
+                        case 9:
+                            batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.4f)* CELL_SIZE, (j + 0.8f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.3f)* CELL_SIZE, (j + 0.6f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.5f)* CELL_SIZE, (j + 0.6f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.2f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.4f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.6f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.1f)* CELL_SIZE, (j + 0.2f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.3f)* CELL_SIZE, (j + 0.2f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.5f)* CELL_SIZE, (j + 0.2f) * CELL_SIZE);
+                            break;
+                        case 8:
+                            batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.4f)* CELL_SIZE, (j + 0.8f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.3f)* CELL_SIZE, (j + 0.6f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.5f)* CELL_SIZE, (j + 0.6f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.2f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.4f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.6f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.1f)* CELL_SIZE, (j + 0.2f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.3f)* CELL_SIZE, (j + 0.2f) * CELL_SIZE);
+                            break;
+                        case 7:
+                            batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.4f)* CELL_SIZE, (j + 0.8f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.3f)* CELL_SIZE, (j + 0.6f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.5f)* CELL_SIZE, (j + 0.6f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.2f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.4f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.6f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.1f)* CELL_SIZE, (j + 0.2f) * CELL_SIZE);
+                            break;
+                        case 6:
+                            batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.4f)* CELL_SIZE, (j + 0.8f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.3f)* CELL_SIZE, (j + 0.6f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.5f)* CELL_SIZE, (j + 0.6f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.2f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.4f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.6f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            break;
+                        case 5:
+                            batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.3f)* CELL_SIZE, (j + 0.6f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.5f)* CELL_SIZE, (j + 0.6f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.2f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.4f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.6f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            break;
+                        case 4:
+                            batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.5f)* CELL_SIZE, (j + 0.6f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.2f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.4f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.6f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            break;
+                        case 3:
+                            batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.2f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.4f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.6f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            break;
+                        case 2:
+                            batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.4f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.6f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            break;
+                        case 1:
+                            batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);
+                            batch.draw(berriesTexture, (i + 0.6f)* CELL_SIZE, (j + 0.4f) * CELL_SIZE);
+                            break;
+                        case 0:
+                            batch.draw(treesTextures[data[i][j].index], i * CELL_SIZE, j * CELL_SIZE);
+                            break;
+                    }
                 }
                 if (data[i][j].dropType == DropType.GOLD) {
                     batch.draw(goldTexture, i * CELL_SIZE, j * CELL_SIZE);
@@ -131,5 +254,13 @@ public class GameMap {
         }
         currentCell.dropType = DropType.NONE;
         currentCell.dropPower = 0;
+    }
+
+    public int getCostOfPassage(int cellX, int cellY) {
+        return data[cellX][cellY].type.costOfPassage;
+    }
+
+    public void removeBerry(int cellX, int cellY) {
+            data[cellX][cellY].countOfBerries--;
     }
 }

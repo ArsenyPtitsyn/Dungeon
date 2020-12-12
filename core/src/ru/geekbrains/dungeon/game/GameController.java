@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.PropertiesUtils;
 import lombok.Data;
+import ru.geekbrains.dungeon.game.units.Hero;
 import ru.geekbrains.dungeon.helpers.Assets;
 import ru.geekbrains.dungeon.screens.ScreenManager;
 
@@ -70,6 +71,7 @@ public class GameController {
 
     public void roundUp() {
         round++;
+        unitController.getHero().reduceSatiety(1);
         unitController.startRound();
         if (round % 3 == 0) {
             unitController.createMonsterInRandomCell();
@@ -149,7 +151,7 @@ public class GameController {
         Group menuGroup = new Group();
         menuGroup.addActor(btnEndTurn);
         menuGroup.addActor(btnGoToMenu);
-        menuGroup.setPosition(20, ScreenManager.WORLD_HEIGHT - 60);
+        menuGroup.setPosition(20, ScreenManager.WORLD_HEIGHT - 100);
 
         stage.addActor(menuGroup);
         skin.dispose();

@@ -50,6 +50,7 @@ public abstract class Unit implements Poolable {
     int cellX;
     int cellY;
     int gold;
+    int satiety, maxSatiety;
     float movementTime;
     float movementMaxTime;
     int targetX, targetY;
@@ -90,6 +91,8 @@ public abstract class Unit implements Poolable {
         this.textures = Assets.getInstance().getAtlas().findRegion(textureName).split(60, 60);
         this.currentDirection = Direction.DOWN;
         this.armour = gc.getArmourController().getArmourByIndex(0);
+        this.maxSatiety = 20;
+        this.satiety = maxSatiety;
     }
 
     public void addGold(int amount) {
@@ -98,6 +101,25 @@ public abstract class Unit implements Poolable {
 
     public void cure(int amount) {
         stats.restoreHp(amount);
+    }
+
+    public void addSatiety(int amount) {
+        if (satiety < maxSatiety + amount)
+            satiety += amount;
+        else
+            satiety = maxSatiety;
+    }
+
+    public void reduceSatiety(int amount) {
+        if (satiety + amount > 0)
+            satiety -= amount;
+        else if (satiety > 0 && amount > satiety){
+            satiety = 0;
+            stats.hp -= amount-satiety;
+        } else {
+            satiety = 0;
+            stats.hp -= amount;
+        }
     }
 
     public void startTurn() {
@@ -145,7 +167,9 @@ public abstract class Unit implements Poolable {
         if (!gc.isCellEmpty(argCellX, argCellY)) {
             return;
         }
-        if (stats.movePoints > 0 && Math.abs(argCellX - cellX) + Math.abs(argCellY - cellY) == 1) {
+
+        if (Math.abs(argCellX - cellX) + Math.abs(argCellY - cellY) == 1 &&
+                stats.movePoints >= gc.getGameMap().getCostOfPassage(argCellX, argCellY)) {
             targetX = argCellX;
             targetY = argCellY;
             currentDirection = Direction.getMoveDirection(cellX, cellY, targetX, targetY);
@@ -172,6 +196,23 @@ public abstract class Unit implements Poolable {
         gc.getEffectController().setup(target.getCellCenterX(), target.getCellCenterY(), weapon.getFxIndex());
     }
 
+    public void gatherBerry(int berryCellX, int berryCellY) {
+        currentDirection = Direction.getMoveDirection(cellX, cellY, berryCellX, berryCellY);
+        if (canIGatherBerry(berryCellX, berryCellY)) {
+            gc.getGameMap().removeBerry(berryCellX, berryCellY);
+            stats.movePoints -= gc.getGameMap().getCostOfPassage(cellX, cellY);
+            if (satiety < maxSatiety)
+                addSatiety(1);
+        }
+    }
+
+    public boolean canIGatherBerry(int berryCellX, int berryCellY) {
+        return stats.movePoints >= gc.getGameMap().getCostOfPassage(cellX, cellY) && satiety < maxSatiety &&
+                ((cellX - berryCellX == 0 && Math.abs(cellY - berryCellY) == 1) ||
+                (cellY - berryCellY == 0 && Math.abs(cellX - berryCellX) == 1)) &&
+                gc.getGameMap().isCellWithBerries(berryCellX, berryCellY);
+    }
+
     public void update(float dt) {
         innerTimer += dt;
         if (!isStayStill()) {
@@ -181,7 +222,7 @@ public abstract class Unit implements Poolable {
                 movementTime = 0;
                 cellX = targetX;
                 cellY = targetY;
-                stats.movePoints--;
+                stats.movePoints -= gc.getGameMap().getCostOfPassage(targetX, targetY);
                 gc.getGameMap().checkAndTakeDrop(this);
             }
         }
